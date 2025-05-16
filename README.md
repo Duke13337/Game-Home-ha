@@ -58,6 +58,6 @@
 
 ---
 
-
+![UML Diagram](https://github.com/user-attachments/assets/1998fd9c-b240-41df-99bd-ce5f6c090db3)
 
 
