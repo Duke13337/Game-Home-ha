@@ -262,8 +262,8 @@ public class GameSession
 Классы, отвечающие за взаимодействие с БД.
 
 C#
-
-
+
+
 // UserRepository.cs
 using Npgsql;
 using System;
@@ -330,8 +330,8 @@ public class UserRepository
 
 #### 3. Обработка ошибок
 C#
-
-
+
+
 // DatabaseException.cs
 public class DatabaseException : Exception
 {
