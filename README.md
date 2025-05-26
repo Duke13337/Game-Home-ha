@@ -225,15 +225,16 @@ CREATE TABLE FriendLink (
 C#
 
 // User.cs
-public class User
+```public class User
 {
     public int Id { get; set; }
     public string Username { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
 }
-
+```
 // Game.cs
+```
 public class Game
 {
     public int Id { get; set; }
@@ -251,6 +252,7 @@ public class GameSession
     public DateTime StartTime { get; set; }
     public int DurationMinutes { get; set; }
 }
+```
 
 Объяснение:
 - Каждый класс соответствует таблице в БД.
@@ -263,8 +265,8 @@ public class GameSession
 
 C#
 
-
 // UserRepository.cs
+```
 using Npgsql;
 using System;
 
@@ -272,7 +274,7 @@ public class UserRepository
 {
     private readonly string _connectionString;
 
-    public UserRepository(string connectionString)
+  public UserRepository(string connectionString)
     {
         _connectionString = connectionString;
     }
@@ -320,7 +322,7 @@ public class UserRepository
         }
     }
 }
-
+```
 Объяснение:
 - UserRepository инкапсулирует логику работы с таблицами Account и User.
 - Create — добавляет запись в БД.
@@ -333,13 +335,15 @@ C#
 
 
 // DatabaseException.cs
+```
 public class DatabaseException : Exception
 {
     public DatabaseException(string message, Exception inner) 
         : base(message, inner) { }
 }
-
+```
 // Пример использования:
+```
 try
 {
     // Вызов метода репозитория
@@ -352,5 +356,5 @@ catch (NpgsqlException ex)
 {
     throw new DatabaseException("Ошибка подключения к БД", ex);
 }
-
+```
 ---
