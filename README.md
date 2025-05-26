@@ -217,4 +217,140 @@ CREATE TABLE FriendLink (
     FOREIGN KEY (friendid) REFERENCES "User"(id)
 );
 ```
+### Этап 4: Реализация слоя работы с БД
 
+#### 1. Модели данных (Models)
+Создайте классы, которые будут отражать структуру таблиц в базе данных.
+
+C#
+
+// User.cs
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
+}
+
+// Game.cs
+public class Game
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Genre { get; set; }
+    public int PlatformId { get; set; }
+}
+
+// GameSession.cs
+public class GameSession
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int GameId { get; set; }
+    public DateTime StartTime { get; set; }
+    public int DurationMinutes { get; set; }
+}
+
+Объяснение:
+- Каждый класс соответствует таблице в БД.
+- Свойства (Id, Username и т.д.) — это колонки таблиц.
+
+---
+
+#### 2. Репозитории (Repositories)
+Классы, отвечающие за взаимодействие с БД.
+
+C#
+
+
+// UserRepository.cs
+using Npgsql;
+using System;
+
+public class UserRepository
+{
+    private readonly string _connectionString;
+
+    public UserRepository(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
+    // Создание пользователя
+    public void Create(User user)
+    {
+        using (var conn = new NpgsqlConnection(_connectionString))
+        {
+            conn.Open();
+            var cmd = new NpgsqlCommand(
+                "INSERT INTO Account (username, email) VALUES (@u, @e);" +
+                "INSERT INTO \"User\" (account_id, password) VALUES (currval(pg_get_serial_sequence('account', 'id')), @p)", 
+                conn);
+            cmd.Parameters.AddWithValue("u", user.Username);
+            cmd.Parameters.AddWithValue("e", user.Email);
+            cmd.Parameters.AddWithValue("p", user.Password);
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    // Получение пользователя по ID
+    public User GetById(int id)
+    {
+        using (var conn = new NpgsqlConnection(_connectionString))
+        {
+            conn.Open();
+            var cmd = new NpgsqlCommand(
+                "SELECT u.id, a.username, a.email, u.password " +
+                "FROM \"User\" u " +
+                "JOIN Account a ON u.account_id = a.id " +
+                "WHERE u.id = @id", 
+                conn);
+            cmd.Parameters.AddWithValue("id", id);
+            using (var reader = cmd.ExecuteReader())
+            {
+                return reader.Read() ? new User
+                {
+                    Id = reader.GetInt32(0),
+                    Username = reader.GetString(1),
+                    Email = reader.GetString(2),
+                    Password = reader.GetString(3)
+                } : null;
+            }
+        }
+    }
+}
+
+Объяснение:
+- UserRepository инкапсулирует логику работы с таблицами Account и User.
+- Create — добавляет запись в БД.
+- GetById — возвращает пользователя по ID.
+
+---
+
+#### 3. Обработка ошибок
+C#
+
+
+// DatabaseException.cs
+public class DatabaseException : Exception
+{
+    public DatabaseException(string message, Exception inner) 
+        : base(message, inner) { }
+}
+
+// Пример использования:
+try
+{
+    // Вызов метода репозитория
+}
+catch (PostgresException ex) when (ex.SqlState == "23505")
+{
+    throw new DatabaseException("Дубликат данных: email уже существует.", ex);
+}
+catch (NpgsqlException ex)
+{
+    throw new DatabaseException("Ошибка подключения к БД", ex);
+}
+
+---
